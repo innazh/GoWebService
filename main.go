@@ -3,6 +3,7 @@ package main
 import (
 	"Webservice/database"
 	"Webservice/product"
+	"Webservice/receipt"
 	"log"
 	"net/http"
 )
@@ -33,6 +34,8 @@ const basePath = "/api"
 func main() {
 	database.SetupDatabase()
 	product.SetupRoutes(basePath)
+	receipt.SetupRoutes(basePath)
+
 	err := http.ListenAndServe(":5000", nil)
 	if err != nil {
 		log.Fatal(err)

@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"log"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -16,4 +17,7 @@ func SetupDatabase() {
 		log.Fatal(err)
 		return
 	}
+	DbConn.SetMaxIdleConns(4)
+	DbConn.SetMaxOpenConns(4)
+	DbConn.SetConnMaxLifetime(time.Second * 60)
 }

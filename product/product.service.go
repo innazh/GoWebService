@@ -1,3 +1,7 @@
+/*By this argument, PUT is for creating when you know the URL of the thing you will create.
+POST can be used to create when you know the URL of the "factory" or manager for the category of things you want to create.
+source: https://stackoverflow.com/questions/630453/put-vs-post-in-rest#:~:text=You%20can%20PUT%20a%20resource,the%20thing%20you%20will%20create.
+*/
 package product
 
 import (
@@ -22,7 +26,6 @@ func SetupRoutes(apiBasePath string) {
 	//me:
 	http.HandleFunc(fmt.Sprintf("%s/%s", apiBasePath, productsPath), cors.MiddlewareFunc(productsHandler))
 	http.HandleFunc(fmt.Sprintf("%s/%s/", apiBasePath, productsPath), cors.MiddlewareFunc(productHandler))
-	http.ListenAndServe(":5000", nil)
 }
 
 func productsHandler(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +56,7 @@ func productsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		_, err = addOrUpdateProduct(newProduct)
+		_, err = insertProduct(newProduct)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -120,7 +123,7 @@ func productHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		// product = &updatedProduct
 		// productList[listItemIndex] = *product
-		addOrUpdateProduct(updatedProduct)
+		updateProduct(updatedProduct)
 		w.WriteHeader(http.StatusOK)
 	case http.MethodOptions:
 		return

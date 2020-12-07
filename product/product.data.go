@@ -3,6 +3,7 @@ package product
 
 import (
 	"Webservice/database"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -12,6 +13,7 @@ import (
 	"os"
 	"sort"
 	"sync"
+	"time"
 )
 
 //it'll allow us to access product w/o interating through the entire slice
@@ -68,7 +70,9 @@ func getProduct(productID int) (*Product, error) {
 
 	// return nil
 	var p Product
-	row := database.DbConn.QueryRow(`SELECT productId, manufacturer, sku, upc, pricePerUnit,
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	row := database.DbConn.QueryRowContext(ctx, `SELECT productId, manufacturer, sku, upc, pricePerUnit,
 	quantityOnHand, productName FROM products WHERE productId = ?`, productID)
 	err := row.Scan(&p.ProductID, &p.Manufacturer, &p.Sku, &p.Upc, &p.PricePerUnit, &p.QuantityOnHand, &p.ProductName)
 
@@ -81,10 +85,18 @@ func getProduct(productID int) (*Product, error) {
 	return &p, nil
 }
 
-func removeProduct(productID int) {
-	productMap.Lock()         //locks for writing
-	defer productMap.Unlock() //allow writing
-	delete(productMap.m, productID)
+func removeProduct(productID int) error {
+	// productMap.Lock()         //locks for writing
+	// defer productMap.Unlock() //allow writing
+	// delete(productMap.m, productID)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	_, err := database.DbConn.ExecContext(ctx, `DELETE FROM products WHERE productId=?`, productID)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
 }
 
 //return a full list of products as a slice
@@ -96,7 +108,9 @@ func getProductList() ([]Product, error) {
 	// }
 	// productMap.RUnlock()
 	// return products
-	results, err := database.DbConn.Query(`SELECT productId, manufacturer, sku, upc, pricePerUnit,
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	results, err := database.DbConn.QueryContext(ctx, `SELECT productId, manufacturer, sku, upc, pricePerUnit,
 	quantityOnHand, productName FROM products`)
 	if err != nil {
 		log.Fatal(err)
@@ -159,15 +173,18 @@ func updateProduct(product Product) error {
 	if product.ProductID == 0 || &product == nil {
 		return errors.New("product has invalid ID")
 	}
-	_, err := database.DbConn.Exec(`UPDATE products SET manufacturer=?, 
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	_, err := database.DbConn.ExecContext(ctx, `UPDATE products SET manufacturer=?, 
 	sku=?, 
 	upc=?, 
 	pricePerUnit=CAST(? AS DECIMAL(13,2)), 
 	quantityOnHand=?, 
-	productName=? WHERE productId=?`, product.Manufacturer, product.Sku, product.Upc, product.PricePerUnit, product.QuantityOnHand)
+	productName=? WHERE productId=?`, product.Manufacturer, product.Sku, product.Upc, product.PricePerUnit, product.QuantityOnHand, product.ProductName, product.ProductID)
 
 	if err != nil {
-		log.Println(err)
+		log.Println(err.Error())
 		return err
 	}
 	return nil
@@ -178,10 +195,12 @@ func insertProduct(product Product) (int, error) {
 		return 0, errors.New("product is invalid")
 	}
 
-	result, err := database.DbConn.Exec(`INSERT INTO products (manufacturer, sku, upc, pricePerUnit, quantityOnHand, productName)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	result, err := database.DbConn.ExecContext(ctx, `INSERT INTO products (manufacturer, sku, upc, pricePerUnit, quantityOnHand, productName)
 	VALUES=(?,?,?,?,?, ?)`, product.Manufacturer, product.Sku, product.Upc, product.PricePerUnit, product.QuantityOnHand, product.ProductName)
 	if err != nil {
-		log.Println(err)
+		log.Println(err.Error())
 		return 0, err
 	}
 
