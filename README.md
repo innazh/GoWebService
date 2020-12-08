@@ -25,6 +25,16 @@ URL path parameters
  - 2. Parse out the path parameters from the Url in order to use them 
  - Request.URL (Scheme, Opaque, User, Host, Path (!), RawPath, ForceQuery, RawQuery, Fragment
 
+scheme://host[:port#]/path/.../[?query-string][#anchor]
+scheme         assign underlying protocol (such as HTTP, HTTPS, FTP)
+host           IP or domain name of HTTP server
+port#          default port is 80, and it can be omitted in this case.
+        If you want to use other ports, you must specify which port. For example,
+        http://www.cnblogs.com:8080/
+path           resources path
+query-string   data are sent to server
+anchor         anchor
+
 Middleware
  - includes authentication, logging, session management
  - executed either before or after the handlers are called
@@ -64,4 +74,8 @@ http://globomantics.com
 -https://dev.globomantic.com/dashboard - or subdomains (by default)
 
 checkout mozilla's resource page on CORS
+
+Websockets
+- are needed in case the data on the server changes, the client needs to know about that too - they need to somehow communicate that
+- uses include: video games, chats, stock trading platforms
 

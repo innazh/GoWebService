@@ -11,31 +11,29 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"sort"
-	"sync"
 	"time"
 )
 
 //it'll allow us to access product w/o interating through the entire slice
-var productMap = struct {
-	//embedded struct:
-	sync.RWMutex //because webservices are multi-threaded, maps in go are inherently not thread-safe,
-	//which means we gotta wrap it in mutex to avoid 2 threads from reading and writing in it at the same time
-	m map[int]Product
-}{m: make(map[int]Product)}
+// var productMap = struct {
+//embedded struct:
+// sync.RWMutex //because webservices are multi-threaded, maps in go are inherently not thread-safe,
+//which means we gotta wrap it in mutex to avoid 2 threads from reading and writing in it at the same time
+// 	m map[int]Product
+// }{m: make(map[int]Product)}
 
 //load the data from json file:
-func init() {
-	fmt.Println("loading products...")
-	prodMap, err := loadProductMap()
+// func init() {
+// 	fmt.Println("loading products...")
+// 	prodMap, err := loadProductMap()
 
-	if err != nil {
-		log.Fatal(err)
-	}
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
 
-	productMap.m = prodMap
-	fmt.Printf("%d products loaded...\n", len(productMap.m))
-}
+// 	productMap.m = prodMap
+// 	fmt.Printf("%d products loaded...\n", len(productMap.m))
+// }
 
 func loadProductMap() (map[int]Product, error) {
 	filename := "products.json"
@@ -131,23 +129,57 @@ func getProductList() ([]Product, error) {
 	return products, nil
 }
 
-//sort in ascending order
-func getProductIds() []int {
-	productMap.RLock()
-	productIds := []int{}
-	for key := range productMap.m {
-		productIds = append(productIds, key)
+func GetTopTenProducts() ([]Product, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	results, err := database.DbConn.QueryContext(ctx, `SELECT 
+	productId, 
+	manufacturer, 
+	sku, 
+	upc, 
+	pricePerUnit, 
+	quantityOnHand, 
+	productName 
+	FROM products ORDER BY quantityOnHand DESC LIMIT 10
+	`)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
 	}
-	productMap.RUnlock()
-	sort.Ints(productIds)
-	return productIds
+	defer results.Close()
+	products := make([]Product, 0)
+	for results.Next() {
+		var product Product
+		results.Scan(&product.ProductID,
+			&product.Manufacturer,
+			&product.Sku,
+			&product.Upc,
+			&product.PricePerUnit,
+			&product.QuantityOnHand,
+			&product.ProductName)
+
+		products = append(products, product)
+	}
+	return products, nil
 }
 
+//sort in ascending order
+// func getProductIds() []int {
+// 	productMap.RLock()
+// 	productIds := []int{}
+// 	for key := range productMap.m {
+// 		productIds = append(productIds, key)
+// 	}
+// 	productMap.RUnlock()
+// 	sort.Ints(productIds)
+// 	return productIds
+// }
+
 //get the next highest ID value
-func getNextProductID() int {
-	productIds := getProductIds()
-	return productIds[len(productIds)-1] + 1
-}
+// func getNextProductID() int {
+// 	productIds := getProductIds()
+// 	return productIds[len(productIds)-1] + 1
+// }
 
 // func addOrUpdateProduct(product Product) (int, error) {
 // 	// if the product id is set, update, otherwise add

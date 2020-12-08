@@ -12,6 +12,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"golang.org/x/net/websocket"
 )
 
 const productsPath = "products"
@@ -26,6 +28,7 @@ func SetupRoutes(apiBasePath string) {
 	//me:
 	http.HandleFunc(fmt.Sprintf("%s/%s", apiBasePath, productsPath), cors.MiddlewareFunc(productsHandler))
 	http.HandleFunc(fmt.Sprintf("%s/%s/", apiBasePath, productsPath), cors.MiddlewareFunc(productHandler))
+	http.Handle("/websocket", websocket.Handler(productSocket))
 }
 
 func productsHandler(w http.ResponseWriter, r *http.Request) {
