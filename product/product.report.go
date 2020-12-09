@@ -12,8 +12,8 @@ import (
 
 type ProductReportFilter struct {
 	NameFilter         string `json:"productName"`
-	ManufacturerFilter string `json:manufacturer`
-	SKUFilter          string `json:sku`
+	ManufacturerFilter string `json:"manufacturer"`
+	SKUFilter          string `json:"sku"`
 }
 
 func handleProductReport(w http.ResponseWriter, r *http.Request) {
