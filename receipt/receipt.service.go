@@ -1,7 +1,7 @@
 package receipt
 
 import (
-	"Webservice/cors"
+	"Webservice/middleware"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -88,6 +88,6 @@ func handleDownload(w http.ResponseWriter, r *http.Request) {
 }
 
 func SetupRoutes(apiBasePath string) {
-	http.HandleFunc(fmt.Sprintf("%s/%s", apiBasePath, receiptPath), cors.MiddlewareFunc(handleReceipts))
-	http.HandleFunc(fmt.Sprintf("%s/%s/", apiBasePath, receiptPath), cors.MiddlewareFunc(handleDownload))
+	http.HandleFunc(fmt.Sprintf("%s/%s", apiBasePath, receiptPath), middleware.MiddlewareFunc(handleReceipts))
+	http.HandleFunc(fmt.Sprintf("%s/%s/", apiBasePath, receiptPath), middleware.MiddlewareFunc(handleDownload))
 }

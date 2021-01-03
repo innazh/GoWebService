@@ -5,7 +5,7 @@ source: https://stackoverflow.com/questions/630453/put-vs-post-in-rest#:~:text=Y
 package product
 
 import (
-	"Webservice/cors"
+	"Webservice/middleware"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -23,12 +23,12 @@ func SetupRoutes(apiBasePath string) {
 	//teacher:
 	// productsHandler := http.HandlerFunc(handleProducts)
 	// productHandler := http.HandlerFunc(handleProduct)
-	// http.Handle(fmt.Sprintf("%s/%s", apiBasePath, productsPath), cors.Middleware(productsHandler))
-	// http.Handle(fmt.Sprintf("%s/%s/", apiBasePath, productsPath), cors.Middleware(productHandler))
+	// http.Handle(fmt.Sprintf("%s/%s", apiBasePath, productsPath), middleware.Middleware(productsHandler))
+	// http.Handle(fmt.Sprintf("%s/%s/", apiBasePath, productsPath), middleware.Middleware(productHandler))
 	//me:
-	http.HandleFunc(fmt.Sprintf("%s/%s", apiBasePath, productsPath), cors.MiddlewareFunc(productsHandler))
-	http.HandleFunc(fmt.Sprintf("%s/%s/", apiBasePath, productsPath), cors.MiddlewareFunc(productHandler))
-	http.HandleFunc(fmt.Sprintf("%s/%s/reports", apiBasePath, productsPath), cors.MiddlewareFunc(handleProductReport))
+	http.HandleFunc(fmt.Sprintf("%s/%s", apiBasePath, productsPath), middleware.MiddlewareFunc(productsHandler))
+	http.HandleFunc(fmt.Sprintf("%s/%s/", apiBasePath, productsPath), middleware.MiddlewareFunc(productHandler))
+	http.HandleFunc(fmt.Sprintf("%s/%s/reports", apiBasePath, productsPath), middleware.MiddlewareFunc(handleProductReport))
 	http.Handle("/websocket", websocket.Handler(productSocket))
 }
 
